@@ -49,7 +49,7 @@ void options_init_with_default(AppContext * const app_context)
     app_context->host_name = NULL;
     app_context->resolver_ip = DEFAULT_RESOLVER_IP;
     app_context->want_ipv6 = 0;
-	app_context->use_tcp = 0;
+    app_context->use_tcp = 0;
 }
 
 static int
