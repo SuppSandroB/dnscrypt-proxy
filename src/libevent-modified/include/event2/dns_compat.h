@@ -186,7 +186,7 @@ int evdns_nameserver_ip_add(const char *ip_as_string);
   @return 0 if successful, or -1 if an error occurred
   @see evdns_resolve_ipv6(), evdns_resolve_reverse(), evdns_resolve_reverse_ipv6()
  */
-int evdns_resolve_ipv4(const char *name, int flags, evdns_callback_type callback, void *ptr);
+int evdns_resolve_ipv4(const char *name, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Lookup an AAAA record for a given name.
@@ -198,7 +198,7 @@ int evdns_resolve_ipv4(const char *name, int flags, evdns_callback_type callback
   @return 0 if successful, or -1 if an error occurred
   @see evdns_resolve_ipv4(), evdns_resolve_reverse(), evdns_resolve_reverse_ipv6()
  */
-int evdns_resolve_ipv6(const char *name, int flags, evdns_callback_type callback, void *ptr);
+int evdns_resolve_ipv6(const char *name, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 struct in_addr;
 struct in6_addr;
@@ -217,7 +217,7 @@ struct in6_addr;
   @return 0 if successful, or -1 if an error occurred
   @see evdns_resolve_reverse_ipv6()
  */
-int evdns_resolve_reverse(const struct in_addr *in, int flags, evdns_callback_type callback, void *ptr);
+int evdns_resolve_reverse(const struct in_addr *in, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Lookup a PTR record for a given IPv6 address.
@@ -233,7 +233,7 @@ int evdns_resolve_reverse(const struct in_addr *in, int flags, evdns_callback_ty
   @return 0 if successful, or -1 if an error occurred
   @see evdns_resolve_reverse_ipv6()
  */
-int evdns_resolve_reverse_ipv6(const struct in6_addr *in, int flags, evdns_callback_type callback, void *ptr);
+int evdns_resolve_reverse_ipv6(const struct in6_addr *in, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Set the value of a configuration option.

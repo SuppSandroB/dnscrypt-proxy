@@ -18,10 +18,11 @@ static struct option getopt_long_options[] = {
     { "ipv6", 0, NULL, '6' },
     { "help", 0, NULL, 'h' },
     { "resolver-address", 1, NULL, 'r' },
+    { "tcp", 0, NULL, 't' },
     { "version", 0, NULL, 'V' },
     { NULL, 0, NULL, 0 }
 };
-static const char   *getopt_options = "6hr:V";
+static const char   *getopt_options = "6thr:V";
 
 static void
 options_version(void)
@@ -32,10 +33,11 @@ options_version(void)
 static void
 options_usage(void)
 {
-    puts("Usage: hostip [-6] [-r resolver_ip[:port]] host_name\n"
+    puts("Usage: hostip [-6] [-t] [-r resolver_ip[:port]] host_name\n"
          "  -6, --ipv6: ask for AAAA records\n"
          "  -h, --help: show usage\n"
          "  -r, --resolver-address=<ip>: the resolver IP address\n"
+         "  -t, --tcp: use tcp\n"
          "  -V, --version: show version number\n"
          "\n"
          "Example: hostip www.example.com\n");
@@ -47,6 +49,7 @@ void options_init_with_default(AppContext * const app_context)
     app_context->host_name = NULL;
     app_context->resolver_ip = DEFAULT_RESOLVER_IP;
     app_context->want_ipv6 = 0;
+	app_context->use_tcp = 0;
 }
 
 static int
@@ -78,6 +81,9 @@ options_parse(AppContext * const app_context, int argc, char *argv[])
             exit(0);
         case 'r':
             app_context->resolver_ip = optarg;
+            break;
+        case 't':
+            app_context->use_tcp = 1;
             break;
         case 'V':
             options_version();

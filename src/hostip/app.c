@@ -113,14 +113,18 @@ int main(int argc, char *argv[])
                 app_context.resolver_ip);
         return 1;
     }
+
+    int protocol = DNS_UDP;
+    if (app_context.use_tcp != 0) protocol = DNS_TCP;
+
     if (app_context.want_ipv6 != 0) {
         evdns_base_resolve_ipv6(evdns_base, app_context.host_name,
                                 DNS_QUERY_NO_SEARCH,
-                                ipv6_query_cb, &app_context);
+                                ipv6_query_cb, &app_context, protocol);
     } else {
         evdns_base_resolve_ipv4(evdns_base, app_context.host_name,
                                 DNS_QUERY_NO_SEARCH,
-                                ipv4_query_cb, &app_context);
+                                ipv4_query_cb, &app_context, protocol);
     }
     event_base_dispatch(app_context.event_loop);
     event_base_free(app_context.event_loop);

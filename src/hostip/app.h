@@ -9,6 +9,7 @@ typedef struct AppContext_ {
     const char        *host_name;
     const char        *resolver_ip;
     _Bool              want_ipv6;
+    _Bool              use_tcp;
 } AppContext;
 
 #endif

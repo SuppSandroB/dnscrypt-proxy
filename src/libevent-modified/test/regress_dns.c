@@ -150,7 +150,7 @@ static void
 dns_gethostbyname(void)
 {
 	dns_ok = 0;
-	evdns_resolve_ipv4("www.monkey.org", 0, dns_gethostbyname_cb, NULL);
+	evdns_resolve_ipv4("www.monkey.org", 0, dns_gethostbyname_cb, NULL, DNS_UDP);
 	event_dispatch();
 
 	tt_int_op(dns_ok, ==, DNS_IPv4_A);
@@ -163,7 +163,7 @@ static void
 dns_gethostbyname6(void)
 {
 	dns_ok = 0;
-	evdns_resolve_ipv6("www.ietf.org", 0, dns_gethostbyname_cb, NULL);
+	evdns_resolve_ipv6("www.ietf.org", 0, dns_gethostbyname_cb, NULL, DNS_UDP);
 	event_dispatch();
 
 	if (!dns_ok && dns_err == DNS_ERR_TIMEOUT) {
@@ -182,7 +182,7 @@ dns_gethostbyaddr(void)
 	struct in_addr in;
 	in.s_addr = htonl(0x7f000001ul); /* 127.0.0.1 */
 	dns_ok = 0;
-	evdns_resolve_reverse(&in, 0, dns_gethostbyname_cb, NULL);
+	evdns_resolve_reverse(&in, 0, dns_gethostbyname_cb, NULL, DNS_UDP);
 	event_dispatch();
 
 	tt_int_op(dns_ok, ==, DNS_PTR);
@@ -205,7 +205,7 @@ dns_resolve_reverse(void *ptr)
 	dns_ok = 0;
 
 	req = evdns_base_resolve_reverse(
-		dns, &in, 0, dns_gethostbyname_cb, base);
+		dns, &in, 0, dns_gethostbyname_cb, base, DNS_UDP);
 	tt_assert(req);
 
 	event_base_dispatch(base);
@@ -410,21 +410,21 @@ dns_server(void)
 
 	/* Send some queries. */
 	evdns_base_resolve_ipv4(base, "zz.example.com", DNS_QUERY_NO_SEARCH,
-					   dns_server_gethostbyname_cb, NULL);
+					   dns_server_gethostbyname_cb, NULL, DNS_UDP);
 	evdns_base_resolve_ipv6(base, "zz.example.com", DNS_QUERY_NO_SEARCH,
-					   dns_server_gethostbyname_cb, NULL);
+					   dns_server_gethostbyname_cb, NULL, DNS_UDP);
 	resolve_addr.s_addr = htonl(0xc0a80b0bUL); /* 192.168.11.11 */
 	evdns_base_resolve_reverse(base, &resolve_addr, 0,
-	    dns_server_gethostbyname_cb, NULL);
+	    dns_server_gethostbyname_cb, NULL, DNS_UDP);
 	memcpy(resolve_addr6.s6_addr,
 	    "\xff\xf0\x00\x00\x00\x00\xaa\xaa"
 	    "\x11\x11\x00\x00\x00\x00\xef\xef", 16);
 	evdns_base_resolve_reverse_ipv6(base, &resolve_addr6, 0,
-	    dns_server_gethostbyname_cb, (void*)6);
+	    dns_server_gethostbyname_cb, (void*)6, DNS_UDP);
 
 	req = evdns_base_resolve_ipv4(base,
 	    "drop.example.com", DNS_QUERY_NO_SEARCH,
-	    dns_server_gethostbyname_cb, (void*)(char*)90909);
+	    dns_server_gethostbyname_cb, (void*)(char*)90909, DNS_UDP);
 
 	evdns_cancel_request(base, req);
 
@@ -529,14 +529,14 @@ dns_search_test(void *arg)
 	n_replies_left = sizeof(r)/sizeof(r[0]);
 	exit_base = base;
 
-	evdns_base_resolve_ipv4(dns, "host", 0, generic_dns_callback, &r[0]);
-	evdns_base_resolve_ipv4(dns, "host2", 0, generic_dns_callback, &r[1]);
-	evdns_base_resolve_ipv4(dns, "host", DNS_NO_SEARCH, generic_dns_callback, &r[2]);
-	evdns_base_resolve_ipv4(dns, "host2", DNS_NO_SEARCH, generic_dns_callback, &r[3]);
-	evdns_base_resolve_ipv4(dns, "host3", 0, generic_dns_callback, &r[4]);
-	evdns_base_resolve_ipv4(dns, "hostn.a.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[5]);
-	evdns_base_resolve_ipv4(dns, "hostn.b.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[6]);
-	evdns_base_resolve_ipv4(dns, "hostn.c.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[7]);
+	evdns_base_resolve_ipv4(dns, "host", 0, generic_dns_callback, &r[0], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "host2", 0, generic_dns_callback, &r[1], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "host", DNS_NO_SEARCH, generic_dns_callback, &r[2], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "host2", DNS_NO_SEARCH, generic_dns_callback, &r[3], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "host3", 0, generic_dns_callback, &r[4], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "hostn.a.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[5], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "hostn.b.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[6], DNS_UDP);
+	evdns_base_resolve_ipv4(dns, "hostn.c.example.com", DNS_NO_SEARCH, generic_dns_callback, &r[7], DNS_UDP);
 
 	event_base_dispatch(base);
 
@@ -618,7 +618,7 @@ dns_search_cancel_test(void *arg)
 	n_replies_left = 1;
 
 	current_req = evdns_base_resolve_ipv4(dns, "host", 0,
-					generic_dns_callback, &r1);
+					generic_dns_callback, &r1, DNS_UDP);
 	event_base_dispatch(base);
 
 	tt_int_op(r1.result, ==, DNS_ERR_CANCEL);
@@ -689,7 +689,7 @@ dns_retry_test(void *arg)
 	tt_assert(! evdns_base_set_option(dns, "initial-probe-timeout", "0.5"));
 
 	evdns_base_resolve_ipv4(dns, "host.example.com", 0,
-	    generic_dns_callback, &r1);
+	    generic_dns_callback, &r1, DNS_UDP);
 
 	n_replies_left = 1;
 	exit_base = base;
@@ -710,7 +710,7 @@ dns_retry_test(void *arg)
 	memset(&r1, 0, sizeof(r1));
 
 	evdns_base_resolve_ipv4(dns, "host.example.com", 0,
-	    generic_dns_callback, &r1);
+	    generic_dns_callback, &r1, DNS_UDP);
 
 	n_replies_left = 2;
 
@@ -723,7 +723,7 @@ dns_retry_test(void *arg)
 	/* It should work this time. */
 	tt_int_op(drop_count, ==, 0);
 	evdns_base_resolve_ipv4(dns, "host.example.com", 0,
-	    generic_dns_callback, &r1);
+	    generic_dns_callback, &r1, DNS_UDP);
 
 	event_base_dispatch(base);
 	tt_int_op(r1.result, ==, DNS_ERR_NONE);
@@ -781,7 +781,7 @@ dns_reissue_test(void *arg)
 
 	memset(&r1, 0, sizeof(r1));
 	evdns_base_resolve_ipv4(dns, "foof.example.com", 0,
-	    generic_dns_callback, &r1);
+	    generic_dns_callback, &r1, DNS_UDP);
 
 	/* Add this after, so that we are sure to get a reissue. */
 	tt_assert(!evdns_base_nameserver_ip_add(dns, buf2));
@@ -840,7 +840,7 @@ dns_inflight_test(void *arg)
 	tt_assert(! evdns_base_set_option(dns, "randomize-case:", "0"));
 
 	for (i=0;i<20;++i)
-		evdns_base_resolve_ipv4(dns, "foof.example.com", 0, generic_dns_callback, &r[i]);
+		evdns_base_resolve_ipv4(dns, "foof.example.com", 0, generic_dns_callback, &r[i], DNS_UDP);
 
 	n_replies_left = 20;
 	exit_base = base;
@@ -1695,7 +1695,7 @@ testleak_setup(const struct testcase_t *testcase)
 	env->dns_base = evdns_base_new(env->base, 0);
 	env->req = evdns_base_resolve_ipv4(
 		env->dns_base, "example.com", DNS_QUERY_NO_SEARCH,
-		generic_dns_callback, &env->r);
+		generic_dns_callback, &env->r, DNS_UDP);
 	return env;
 }
 

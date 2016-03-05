@@ -226,7 +226,7 @@ main(int c, char **v) {
 				continue;
 			}
 			fprintf(stderr, "resolving %s...\n",v[idx]);
-			evdns_base_resolve_reverse(evdns_base, &addr, 0, main_callback, v[idx]);
+			evdns_base_resolve_reverse(evdns_base, &addr, 0, main_callback, v[idx], DNS_UDP);
 		} else if (use_getaddrinfo) {
 			struct evutil_addrinfo hints;
 			memset(&hints, 0, sizeof(hints));
@@ -238,7 +238,7 @@ main(int c, char **v) {
 			    gai_callback, v[idx]);
 		} else {
 			fprintf(stderr, "resolving (fwd) %s...\n",v[idx]);
-			evdns_base_resolve_ipv4(evdns_base, v[idx], 0, main_callback, v[idx]);
+			evdns_base_resolve_ipv4(evdns_base, v[idx], 0, main_callback, v[idx], DNS_UDP);
 		}
 	}
 	fflush(stdout);

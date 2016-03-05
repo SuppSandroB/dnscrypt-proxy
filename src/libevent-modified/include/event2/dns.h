@@ -337,7 +337,7 @@ struct evdns_request;
   @return an evdns_request object if successful, or NULL if an error occurred.
   @see evdns_resolve_ipv6(), evdns_resolve_reverse(), evdns_resolve_reverse_ipv6(), evdns_cancel_request()
  */
-struct evdns_request *evdns_base_resolve_ipv4(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr);
+struct evdns_request *evdns_base_resolve_ipv4(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Lookup an AAAA record for a given name.
@@ -350,7 +350,7 @@ struct evdns_request *evdns_base_resolve_ipv4(struct evdns_base *base, const cha
   @return an evdns_request object if successful, or NULL if an error occurred.
   @see evdns_resolve_ipv4(), evdns_resolve_reverse(), evdns_resolve_reverse_ipv6(), evdns_cancel_request()
  */
-struct evdns_request *evdns_base_resolve_ipv6(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr);
+struct evdns_request *evdns_base_resolve_ipv6(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 struct in_addr;
 struct in6_addr;
@@ -366,7 +366,7 @@ struct in6_addr;
   @return an evdns_request object if successful, or NULL if an error occurred.
   @see evdns_resolve_reverse_ipv6(), evdns_cancel_request()
  */
-struct evdns_request *evdns_base_resolve_reverse(struct evdns_base *base, const struct in_addr *in, int flags, evdns_callback_type callback, void *ptr);
+struct evdns_request *evdns_base_resolve_reverse(struct evdns_base *base, const struct in_addr *in, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 
 /**
@@ -380,7 +380,7 @@ struct evdns_request *evdns_base_resolve_reverse(struct evdns_base *base, const 
   @return an evdns_request object if successful, or NULL if an error occurred.
   @see evdns_resolve_reverse_ipv6(), evdns_cancel_request()
  */
-struct evdns_request *evdns_base_resolve_reverse_ipv6(struct evdns_base *base, const struct in6_addr *in, int flags, evdns_callback_type callback, void *ptr);
+struct evdns_request *evdns_base_resolve_reverse_ipv6(struct evdns_base *base, const struct in6_addr *in, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Lookup a TXT record for a given name.
@@ -392,7 +392,7 @@ struct evdns_request *evdns_base_resolve_reverse_ipv6(struct evdns_base *base, c
   @param ptr an argument to pass to the callback function
   @return an evdns_request object if successful, or NULL if an error occurred.
  */
-struct evdns_request *evdns_base_resolve_txt(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr);
+struct evdns_request *evdns_base_resolve_txt(struct evdns_base *base, const char *name, int flags, evdns_callback_type callback, void *ptr, int protocol);
 
 /**
   Cancels a pending DNS resolution request.
@@ -584,6 +584,10 @@ typedef void (*evdns_request_callback_fn_type)(struct evdns_server_request *, vo
 /* flags that can be set in answers; as part of the err parameter */
 #define EVDNS_FLAGS_AA	0x400
 #define EVDNS_FLAGS_RD	0x080
+
+/* flags for which protocol to use */
+#define DNS_UDP 0
+#define DNS_TCP 1
 
 /** Create a new DNS server port.
 

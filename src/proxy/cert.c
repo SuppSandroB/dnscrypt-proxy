@@ -398,14 +398,23 @@ cert_updater_update(ProxyContext * const proxy_context)
     if (proxy_context->tcp_only != 0) {
         (void) evdns_base_nameserver_ip_add(cert_updater->evdns_base,
                                             proxy_context->resolver_ip);
-    }
-    if (evdns_base_resolve_txt(cert_updater->evdns_base,
+        if (evdns_base_resolve_txt(cert_updater->evdns_base,
                                proxy_context->provider_name,
                                DNS_QUERY_NO_SEARCH,
                                cert_query_cb,
-                               proxy_context) == NULL) {
-        return -1;
+                               proxy_context, DNS_TCP) == NULL) {
+            return -1;
+        }
+    } else{
+        if (evdns_base_resolve_txt(cert_updater->evdns_base,
+                               proxy_context->provider_name,
+                               DNS_QUERY_NO_SEARCH,
+                               cert_query_cb,
+                               proxy_context, DNS_UDP) == NULL) {
+            return -1;
+        }
     }
+
     return 0;
 }
 
