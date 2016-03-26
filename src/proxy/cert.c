@@ -27,7 +27,7 @@
 #include "probes.h"
 #include "utils.h"
 
-static int cert_updater_update(ProxyContext * const proxy_context);
+static int cert_updater_update(ProxyContext * const proxy_context, int type);
 
 static int
 cert_parse_version(ProxyContext * const proxy_context,
@@ -214,12 +214,21 @@ cert_timer_cb(evutil_socket_t handle, const short event,
               void * const proxy_context_)
 {
     ProxyContext * const proxy_context = proxy_context_;
-
+    CertUpdater *cert_updater = &proxy_context->cert_updater;
+    int type = DNS_UDP;
+    
     (void) handle;
     (void) event;
-    logger_noformat(proxy_context, LOG_INFO,
-                    "Refetching server certificates");
-    cert_updater_update(proxy_context);
+    
+    if (proxy_context->tcp_only != 0 && cert_updater->query_retry_step % 2 == 0){
+        type = DNS_TCP;
+        logger_noformat(proxy_context, LOG_INFO,
+                    "Refetching server certificates over tcp");
+    }else{
+        logger_noformat(proxy_context, LOG_INFO,
+                    "Refetching server certificates over udp");
+    }
+    cert_updater_update(proxy_context, type);
 }
 
 static void
@@ -376,7 +385,7 @@ cert_updater_init(ProxyContext * const proxy_context)
 }
 
 static int
-cert_updater_update(ProxyContext * const proxy_context)
+cert_updater_update(ProxyContext * const proxy_context, int type)
 {
     CertUpdater *cert_updater = &proxy_context->cert_updater;
 
@@ -402,7 +411,7 @@ cert_updater_update(ProxyContext * const proxy_context)
                                proxy_context->provider_name,
                                DNS_QUERY_NO_SEARCH,
                                cert_query_cb,
-                               proxy_context, DNS_TCP) == NULL) {
+                               proxy_context, type) == NULL) {
             return -1;
         }
     } else{
@@ -410,7 +419,7 @@ cert_updater_update(ProxyContext * const proxy_context)
                                proxy_context->provider_name,
                                DNS_QUERY_NO_SEARCH,
                                cert_query_cb,
-                               proxy_context, DNS_UDP) == NULL) {
+                               proxy_context, type) == NULL) {
             return -1;
         }
     }
@@ -423,8 +432,11 @@ cert_updater_start(ProxyContext * const proxy_context)
 {
     evdns_set_random_init_fn(NULL);
     evdns_set_random_bytes_fn(randombytes_buf);
-    cert_updater_update(proxy_context);
-
+    if (proxy_context->tcp_only != 0){
+        cert_updater_update(proxy_context, DNS_TCP);
+    } else{
+        cert_updater_update(proxy_context, DNS_UDP);
+    }
     return 0;
 }
 
