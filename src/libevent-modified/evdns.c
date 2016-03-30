@@ -3300,8 +3300,11 @@ search_set_from_hostname(struct evdns_base *base) {
 static char *
 search_make_new(const struct search_state *const state, int n, const char *const base_name) {
 	const size_t base_len = strlen(base_name);
-	const char need_to_append_dot = base_name[base_len - 1] == '.' ? 0 : 1;
+	char need_to_append_dot;
 	struct search_domain *dom;
+
+	if (!base_len) return NULL;
+	need_to_append_dot = base_name[base_len - 1] == '.' ? 0 : 1;
 
 	for (dom = state->head; dom; dom = dom->next) {
 		if (!n--) {
@@ -4119,7 +4122,7 @@ static void
 evdns_nameserver_free(struct nameserver *server)
 {
 	if (server->socket >= 0)
-	evutil_closesocket(server->socket);
+		evutil_closesocket(server->socket);
 	(void) event_del(&server->event);
 	event_debug_unassign(&server->event);
 	if (server->state == 0)
@@ -4145,6 +4148,7 @@ evdns_base_free_and_unlock(struct evdns_base *base, int fail_requests)
 
 	for (server = base->server_head; server; server = server_next) {
 		server_next = server->next;
+        server->probe_request = NULL;
 		evdns_nameserver_free(server);
 		if (server_next == base->server_head)
 			break;
